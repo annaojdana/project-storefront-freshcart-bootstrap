@@ -1,4 +1,8 @@
-import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ViewEncapsulation,
+} from '@angular/core';
 import { Observable } from 'rxjs';
 import { CategoryModel } from '../../models/category.model';
 import { StoreModel } from '../../models/store.model';
@@ -10,12 +14,17 @@ import { StoresService } from '../../services/stores.service';
   styleUrls: ['./home.component.scss'],
   templateUrl: './home.component.html',
   encapsulation: ViewEncapsulation.Emulated,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
-  readonly categoriesList$: Observable<CategoryModel[]> = this._categoriesService.getAllCategory();
-  readonly storesList$: Observable<StoreModel[]> = this._storesService.getAllStores();
+  collapsed = true;
+  readonly categoriesList$: Observable<CategoryModel[]> =
+    this._categoriesService.getAllCategory();
+  readonly storesList$: Observable<StoreModel[]> =
+    this._storesService.getAllStores();
 
-  constructor(private _categoriesService: CategoriesService, private _storesService: StoresService) {
-  }
+  constructor(
+    private _categoriesService: CategoriesService,
+    private _storesService: StoresService
+  ) {}
 }

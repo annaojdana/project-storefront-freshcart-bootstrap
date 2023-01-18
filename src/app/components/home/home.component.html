@@ -15,12 +15,33 @@
           <div class="d-flex justify-content-between w-100 d-lg-none"> <a class="navbar-brand" routerLink="/"> <img
                 src="/assets/images/logo/freshcart-logo.svg" alt="eCommerce HTML Template"> </a>
             <div class="d-flex align-items-center lh-1">
-              <!-- Button --> <button class="navbar-toggler collapsed"
-                type="button" aria-controls="navbar-default" aria-label="Toggle navigation"> <span
-                  class="icon-bar top-bar mt-0"></span> <span class="icon-bar middle-bar"></span> <span
-                  class="icon-bar bottom-bar"></span> </button> </div>
+              <!-- Button -->
+              <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#mobileMenu"
+                (click)="collapsed = !collapsed">
+                <span class="icon-bar top-bar mt-0">
+                </span>
+                <span class="icon-bar middle-bar">
+                </span>
+                <span class="icon-bar bottom-bar"></span> </button>
+            </div>
+            <!-- MOBILE MENU -->
+            <div class="offcanvas offcanvas-end w-100 px-8 " [class.show]="!collapsed" id="mobileMenu" tabindex="-1">
+              <div class="offcanvas-header pt-10">
+<a  routerLink="/"> <img src="/assets/images/logo/freshcart-logo.svg"
+    alt="eCommerce HTML Template"> </a>
+                <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"
+                  (click)="collapsed = !collapsed"></button>
+              </div>
+              <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-end flex-grow-1 ">
+                  <li *ngFor="let category of categoriesList$ | async" class="nav-item"><a
+                      [routerLink]="'categories/'+ category.id" class="nav-link">{{category.name}}</a></li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- MOBILE MENU -->
           </div>
-          
         </div>
       </div>
     </div>
