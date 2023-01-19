@@ -25,41 +25,46 @@
 
 <section class="my-lg-14 my-8" *ngIf="storesListWithTags$ | async as stores">
   <div class="container">
-    <div class="col-12 mb-6">
-      <h3 class="mb-1">Stores</h3>
-    </div>
-    <div class="mb-4">
-      <h6>
-        We have <span class="text-primary">{{stores.length}}</span> vendors
-        now
-      </h6>
+    <div class="row">
+      <div class="col-12 mb-6">
+        <h3>Stores</h3>
+      </div>
+      <div class="mb-4">
+        <h6>
+          We have <span class="text-primary">{{stores.length}}</span> vendors
+          now
+        </h6>
+      </div>
     </div>
     <div class="row">
-      <!-- card -->
-      <div *ngFor="let store of stores" class="col-md-4 mb-5"><a [routerLink]="'stores/'+store.id"
-          class="text-decoration-none text-inherit">
-          <div class="card card-product flex-row p-8">
 
-            <!-- img -->
-            <div class="w-20 me-5">
-              <img [src]="store.logoUrl" [alt]="store.name" class="rounded-circle w-100">
+      <!-- card -->
+      <div *ngFor="let store of stores" class=" col-md-6 col-lg-4 mb-5  ">
+        <div class="card flex-row p-8 card-product">
+          <!-- img -->
+          <div>
+            <img [src]="store.logoUrl" [alt]="store.name" class="rounded-circle icon-shape icon-xl">
+          </div>
+          <!-- text -->
+          <div class="ms-6">
+            <h5 class="mb-1">
+              <a [routerLink]="'stores/'+store.id" class="text-decoration-none text-inherit">
+                {{store.name}}
+              </a>
+            </h5>
+            <div class="small text-muted">
+              <span *ngFor="let tag of store.tags; last as last"><span>{{tag}}</span> <span *ngIf="!last">
+                  &#x2022; </span></span>
             </div>
-            <!-- text -->
-            <div class="w-80">
-              <h5> {{store.name}}</h5>
-              <div class="small text-muted d-inline" *ngFor="let tag of store.tags; last as last">
-                {{tag}} <span *ngIf="!last"> &#x2022; </span>
-              </div>
-              <div>
-                <span class="badge text-bg-light border">{{store.distanceInKms | number:'1.1-1' }} km</span>
-              </div>
+            <div>
+              <span class="badge text-bg-light border">{{store.distanceInKms | number:'1.1-1' }} km</span>
             </div>
           </div>
-
-        </a></div>
-
+        </div>
+      </div>
     </div>
-
-
   </div>
+
+
+
 </section>
