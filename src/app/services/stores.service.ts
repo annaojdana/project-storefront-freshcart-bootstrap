@@ -12,5 +12,10 @@ export class StoresService {
       'https://6384fca14ce192ac60696c4b.mockapi.io/freshcart-stores'
     );
   }
+
+  getAllStoreTags(): Observable<string[]> {
+    return this._httpClient.get<string[]>(
+      'https://6384fca14ce192ac60696c4b.mockapi.io/freshcart-store-tags'
+    );
+  }
 }
-;
