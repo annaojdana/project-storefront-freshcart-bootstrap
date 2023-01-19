@@ -1,6 +1,7 @@
 {
   "name": "ng-freshcard-bootstrap-theme",
   "version": "0.0.0",
+  "homepage": "https://fresh-cart.netlify.app/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
