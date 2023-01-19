@@ -5,7 +5,7 @@
     </div>
 
     <div class="row">
-      <div *ngFor="let category of categoriesList$ | async" class="col-md-3 mb-5">
+      <div *ngFor="let category of categoriesList$ | async" class="col-md-4 col-lg-3 mb-5">
         <a [routerLink]="'categories/'+category.id" class="text-decoration-none text-inherit">
           <!-- card -->
           <div class="card card-product">
