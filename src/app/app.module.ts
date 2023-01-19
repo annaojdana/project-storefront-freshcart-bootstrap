@@ -1,3 +1,5 @@
+import { FooterComponentModule } from './components/footer/footer.component-module';
+import { HeaderComponentModule } from './components/header/header.component-module';
 
 import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
@@ -19,6 +21,8 @@ import { CollapseModule } from 'ngx-bootstrap/collapse';
     CollapseModule,
     CommonModule,
     RouterModule,
+    HeaderComponentModule,
+    FooterComponentModule
   ],
   providers: [],
   bootstrap: [AppComponent],
