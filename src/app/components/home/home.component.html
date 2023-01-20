@@ -1,1 +1,72 @@
 
+<section class="my-lg-14 my-8">
+  <div class="container">
+    <div class="col-12 mb-6">
+      <h3 class="mb-1">Shop by Category</h3>
+    </div>
+
+    <div class="row">
+      <div *ngFor="let category of categoriesList$ | async" class="col-md-4 col-lg-3 mb-5">
+        <a [routerLink]="'categories/'+category.id" class="text-decoration-none text-inherit">
+          <!-- card -->
+          <div class="card card-product">
+            <div class="card-body text-center py-8">
+              <!-- img -->
+              <img [src]="category.imageUrl" [alt]="category.name" class="mb-3">
+              <!-- text -->
+              <div class="text-truncate">{{category.name}}</div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="my-lg-14 my-8" *ngIf="storesListWithTags$ | async as stores">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 mb-6">
+        <h3>Stores</h3>
+      </div>
+      <div class="mb-4">
+        <h6>
+          We have <span class="text-primary">{{stores.length}}</span> vendors
+          now
+        </h6>
+      </div>
+    </div>
+    <div class="row">
+
+      <!-- card -->
+      <div *ngFor="let store of stores" class=" col-md-6 col-lg-4 mb-5  ">
+        <div class="card flex-row p-8 card-product">
+          <!-- img -->
+          <div>
+            <img [src]="store.logoUrl" [alt]="store.name" class="rounded-circle icon-shape icon-xl">
+          </div>
+          <!-- text -->
+          <div class="ms-6">
+            <h5 class="mb-1">
+              <a [routerLink]="'stores/'+store.id" class="text-decoration-none text-inherit">
+                {{store.name}}
+              </a>
+            </h5>
+            <div class="small text-muted">
+              <span *ngFor="let tag of store.tags; last as last"><span>{{tag}}</span> <span *ngIf="!last">
+                  &#x2022; </span></span>
+            </div>
+            <div>
+              <span class="badge text-bg-light border">{{store.distanceInKms | number:'1.1-1' }} km</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+</section>
+
