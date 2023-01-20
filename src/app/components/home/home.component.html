@@ -1,4 +1,3 @@
-
 <section class="my-lg-14 my-8">
   <div class="container">
     <div class="col-12 mb-6">
@@ -23,7 +22,27 @@
 
   </div>
 </section>
-
+<section class="my-lg-14 my-8" *ngFor="let category of productsList$ | async">
+  <div class="container">
+    <div class="row">
+      <div class="col-12 mb-6">
+        <h3 class="mb-1">{{category.name}}</h3>
+      </div>
+      <div *ngFor="let product of category.products" class=" col-sm-6 col-md-4 col-lg mb-5"><a
+          class="text-decoration-none text-inherit"><!-- card -->
+          <div class="card card-product">
+            <div class="card-body"><!-- img --><img [src]="product.imageUrl" [alt]="product.name"
+                class="mb-3 img-fluid"><!-- text -->
+              <div class="text-truncate">
+                <h2 class="fs-6">{{product.name}}</h2>
+                <p class="text-dark">${{product.price}} </p>
+              </div>
+            </div>
+          </div>
+        </a></div>
+    </div>
+  </div>
+</section>
 <section class="my-lg-14 my-8" *ngIf="storesListWithTags$ | async as stores">
   <div class="container">
     <div class="row">
@@ -69,4 +88,3 @@
 
 
 </section>
-
