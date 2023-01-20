@@ -1,1 +1,32 @@
-<h1>Category</h1>
+<div class=" mt-8 mb-lg-14 mb-8">
+  <div class="container">
+    <div class="row gx-10">
+      <aside class="col-lg-3 col-md-4 mb-6 mb-md-0">
+        <div class="offcanvas offcanvas-start offcanvas-collapse w-md-50 ">
+          <div class="offcanvas-header d-lg-none">
+            <h5 class="offcanvas-title">Filter</h5>
+            <button type="button" class="btn-close" aria-label="Close"></button>
+          </div>
+
+          <div class="offcanvas-body ps-lg-2 pt-lg-0">
+            <div class="mb-8">
+              <h5 class="mb-3">Categories</h5>
+              <ul class="nav nav-category">
+                <li *ngFor="let category of categories$ | async" class="nav-item border-bottom w-100 collapsed"><a
+                    class="nav-link">{{category.name}}<i class="feather-icon icon-chevron-right"></i></a></li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+      <section class="col-lg-9 col-md-12">
+        <div class="card mb-4 bg-light border-0" *ngIf="categoryDetails$ | async as category">
+          <div class=" card-body p-9">
+            <h2 class="mb-0 fs-1">{{category.name}}</h2>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
