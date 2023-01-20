@@ -17,7 +17,7 @@
             <div class="d-flex align-items-center lh-1">
               <!-- Button -->
               <button class="navbar-toggler collapsed" type="button" data-toggle="collapse" data-target="#mobileMenu"
-                (click)="collapsed = !collapsed">
+                (click)=" onMobileMenuToggle()">
                 <!-- zmienić na subjecta i stworzyć funkcje-->
                 <span class="icon-bar top-bar mt-0">
                 </span>
@@ -25,7 +25,7 @@
                 </span>
                 <span class="icon-bar bottom-bar"></span> </button>
             </div>
-          
+
           </div>
         </div>
       </div>
@@ -33,21 +33,23 @@
   </div>
 </header>
 <div class="border-bottom pb-lg-4 pb-3">
-  <nav class="navbar navbar-expand-lg navbar-light navbar-default pt-0 pb-0">
+  <nav *ngIf=" mobileMenu$ | async as menu" class="navbar navbar-expand-lg navbar-light navbar-default pt-0 pb-0">
     <div class="container px-0 px-md-3">
       <!-- mobile menu tu-->
-      <div class="offcanvas offcanvas-start p-4 p-lg-0" [ngClass]="{show:!collapsed}">
-        <div class="d-flex justify-content-between align-items-center mb-2 d-block d-lg-none"> <a routerLink="/"><img
-              src="/assets/images/logo/freshcart-logo.svg" alt="eCommerce HTML Template"></a> <button type="button"
-            class="btn-close" aria-label="Close" (click)="collapsed = !collapsed"></button> </div>
+      <div class="offcanvas offcanvas-start p-4 p-lg-0" [ngClass]="{show:menu}">
+        <div class="d-flex justify-content-between align-items-center mb-2 d-block d-lg-none"> <a routerLink="/"
+            (click)="onMobileMenuToggle()"><img src="/assets/images/logo/freshcart-logo.svg"
+              alt="eCommerce HTML Template"></a> <button type="button" class="btn-close" aria-label="Close"
+            (click)="onMobileMenuToggle()"></button> </div>
         <div class="d-block">
           <ul class="navbar-nav">
-            <li *ngFor="let category of categoriesList$ | async" class="nav-item"><a
+            <li *ngFor="let category of categoriesList$ | async" class="nav-item" (click)="onMobileMenuToggle()"><a
                 [routerLink]="'categories/'+ category.id" class="nav-link">{{category.name}}</a></li>
           </ul>
         </div>
 
       </div>
+      <div class="offcanvas-backdrop fade" [ngClass]="{show:menu}"></div>
     </div>
   </nav>
 </div>
