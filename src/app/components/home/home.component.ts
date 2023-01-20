@@ -36,18 +36,23 @@ export class HomeComponent {
         return this._mapToStoresWithTagsQueryModel(stores, tags);
       })
     );
-  readonly productsList$: Observable<CategoryWithProductsQueryModel[]> =
+  readonly fruitsList$: Observable<CategoryWithProductsQueryModel[]> =
     combineLatest([
       this._productsService.getAll(),
       this._categoriesService.getAllCategory(),
     ]).pipe(
       map(([products, categories]) =>
-        this._mapToCategoryWithProducts(products, categories)
-          .filter((c) => c.id === '5' || c.id === '2')
-          .sort((a, b) => +b.id - +a.id)
-      ),
-
-      tap(console.log)
+        this._mapToCategoryWithProducts(products, categories).filter(c=>c.id==='5')
+      )
+    );
+  readonly snacksList$: Observable<CategoryWithProductsQueryModel[]> =
+    combineLatest([
+      this._productsService.getAll(),
+      this._categoriesService.getAllCategory(),
+    ]).pipe(
+      map(([products, categories]) =>
+        this._mapToCategoryWithProducts(products, categories).filter(c=>c.id==='2')
+      )
     );
 
   constructor(
