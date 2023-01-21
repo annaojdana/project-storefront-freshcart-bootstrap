@@ -3,7 +3,7 @@ import {
   Component,
   ViewEncapsulation,
 } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { CategoryModel } from '../../models/category.model';
 import { CategoriesService } from '../../services/categories.service';
 
@@ -15,9 +15,15 @@ import { CategoriesService } from '../../services/categories.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeaderComponent {
-  collapsed = true;
   readonly categoriesList$: Observable<CategoryModel[]> =
     this._categoriesService.getAllCategory();
+  private _mobileMenuSubject: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);
+  public mobileMenu$: Observable<boolean> =
+    this._mobileMenuSubject.asObservable();
 
   constructor(private _categoriesService: CategoriesService) {}
+  onMobileMenuToggle(): void {
+    this._mobileMenuSubject.next(!this._mobileMenuSubject.value);
+  }
 }
