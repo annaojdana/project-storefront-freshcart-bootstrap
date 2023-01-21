@@ -2,7 +2,7 @@
   <div class="container">
     <div class="row">
 
-      <ng-container *ngIf="store$ | async as item">
+      <ng-container *ngIf="storeWithProducts$ | async as item">
         <div class="d-flex flex-column col-12 col-lg-3 col-md-4 mb-4 mb-md-0">
           <div> <!-- img --> <!-- img --> <img [src]="item.logoUrl" [alt]="item.name"
               class="rounded-circle icon-shape icon-xxl">
@@ -14,7 +14,7 @@
           </div>
         </div>
       </ng-container>
-      <ng-container *ngIf="store$ | async as item"><!-- card -->
+      <ng-container *ngIf="storeWithProducts$ | async as item"><!-- card -->
         <div class="col-12 col-lg-9 col-md-8">
           <div class="mb-8 bg-light d-lg-flex justify-content-lg-between rounded"> <!-- card body -->
             <div class="align-self-center p-8">
@@ -23,8 +23,9 @@
                 <p class="mb-0 text-muted">Whatever the occasion, we've got you covered.</p>
               </div>
               <div class="position-relative">
-                <input type="text" class="form-control" id="exampleFormControlInput1" [placeholder]="'Search '+item.name"
-                  data-np-intersection-state="visible"><span class="position-absolute end-0 top-0 mt-2 me-3">
+                <input type="text" class="form-control" id="exampleFormControlInput1"
+                  [placeholder]="'Search '+item.name" data-np-intersection-state="visible"><span
+                  class="position-absolute end-0 top-0 mt-2 me-3">
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                     class="feather feather-search">
@@ -43,5 +44,23 @@
       </ng-container>
 
     </div>
+    <ng-container *ngIf="storeWithProducts$ | async as store">
+      <div class="row">
+        <div class="mt-4">
+          <h2 class="mb-4 ">{{store.name}} products:</h2></div>
+      <div *ngFor="let product of store.products"
+        class=" col-lg-2 col-md-4 col-6 mt-2"><a
+          class="text-decoration-none text-inherit"><!-- card -->
+          <div class="card card-product border-white">
+            <div class="card-body"><!-- img --><img [src]="product.imageUrl" [alt]="product.name"
+                class="mb-3 img-fluid"><!-- text -->
+              <div class="text-truncate">
+                <h2 class="fs-6 text-wrap">{{product.name}}</h2>
+              </div>
+            </div>
+          </div>
+        </a></div>
+        </div>
+    </ng-container>
   </div>
 </section>
