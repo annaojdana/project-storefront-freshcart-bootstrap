@@ -1,1 +1,47 @@
-<h1>STORE</h1>
+<section class="my-lg-14 my-8">
+  <div class="container">
+    <div class="row">
+
+      <ng-container *ngIf="store$ | async as item">
+        <div class="d-flex flex-column col-12 col-lg-3 col-md-4 mb-4 mb-md-0">
+          <div> <!-- img --> <!-- img --> <img [src]="item.logoUrl" [alt]="item.name"
+              class="rounded-circle icon-shape icon-xxl">
+          </div> <!-- heading -->
+          <div class="mt-4">
+            <h1 class="mb-1 h4">{{item.name}}</h1>
+            <div class="small text-muted"> <span>It's only {{item.distanceInKm | number:'1.1-1'}} km away from you!
+              </span> </div>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="store$ | async as item"><!-- card -->
+        <div class="col-12 col-lg-9 col-md-8">
+          <div class="mb-8 bg-light d-lg-flex justify-content-lg-between rounded"> <!-- card body -->
+            <div class="align-self-center p-8">
+              <div class="mb-3">
+                <h2 class="mb-0 fs-1">{{item.name}}</h2>
+                <p class="mb-0 text-muted">Whatever the occasion, we've got you covered.</p>
+              </div>
+              <div class="position-relative">
+                <input type="text" class="form-control" id="exampleFormControlInput1" [placeholder]="'Search '+item.name"
+                  data-np-intersection-state="visible"><span class="position-absolute end-0 top-0 mt-2 me-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="feather feather-search">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </span>
+              </div>
+
+            </div>
+            <div class="py-4">
+              <img src="../assets/images/svg-graphics/store-graphics.svg" alt="store-graphics" class="img-fluid">
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</section>
