@@ -1,4 +1,3 @@
-import { RatingStarsQueryModel } from './../../query-models/rating-stars.query-model';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,13 +5,23 @@ import {
 } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, combineLatest, of } from 'rxjs';
-import { filter, map, startWith, switchMap, take, tap } from 'rxjs/operators';
+import { Observable, combineLatest, of, BehaviorSubject } from 'rxjs';
+import {
+  shareReplay,
+  map,
+  startWith,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs/operators';
 import { FilterOptionsQueryModel } from '../../query-models/filter-options.query-model';
+import { RatingStarsQueryModel } from '../../query-models/rating-stars.query-model';
 import { CategoryModel } from '../../models/category.model';
 import { ProductsWithCategoryNameQueryModel } from '../../query-models/products-with-category-name.query-model';
+import { StoreModel } from '../../models/store.model';
 import { CategoriesService } from '../../services/categories.service';
 import { ProductsService } from '../../services/products.service';
+import { StoresService } from '../../services/stores.service';
 import { ProductModel } from '../../models/product.model';
 
 @Component({
@@ -59,7 +68,7 @@ export class CategoryProductsComponent {
     priceFrom: new FormControl(),
     priceTo: new FormControl(),
     rating: new FormControl(),
-    store: new FormControl(),
+    stores: new FormControl(),
   });
 
   readonly categories$: Observable<CategoryModel[]> =
@@ -109,10 +118,16 @@ export class CategoryProductsComponent {
       ),
       tap(console.log)
     );
-
+  readonly stores$: Observable<StoreModel[]> =
+    this._storesService.getAllStores();
+  private _selectedStoresSubject: BehaviorSubject<Set<string>> =
+    new BehaviorSubject<Set<string>>(new Set());
+  public selectedStores$: Observable<Set<string>> =
+    this._selectedStoresSubject.asObservable();
   readonly filteredProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
     combineLatest([
       this.sortedProducts$,
+      this._selectedStoresSubject,
       this.filterForm.valueChanges.pipe(
         startWith({
           priceFrom: 0,
@@ -120,9 +135,8 @@ export class CategoryProductsComponent {
         })
       ),
     ]).pipe(
-      map(([products, filterForm]) => {
-        console.log(filterForm.priceFrom);
-        console.log(filterForm.priceTo);
+      map(([products, stores, filterForm]) => {
+        console.log(stores);
         return products
           .filter(
             (p) =>
@@ -132,6 +146,11 @@ export class CategoryProductsComponent {
           .filter((p) =>
             filterForm.rating
               ? Math.floor(p.ratingValue) === filterForm.rating
+              : p
+          )
+          .filter((p) =>
+            stores.size > 0
+              ? stores.forEach((s) => (p.storeIds.includes(s) ? p : []))
               : p
           );
       })
@@ -144,7 +163,8 @@ export class CategoryProductsComponent {
           (pagination.pageNumber - 1) * pagination.pageSize,
           pagination.pageNumber * pagination.pageSize
         );
-      })
+      }),
+      shareReplay(1)
     );
 
   public pageSizeOptions$: Observable<number[]> = of([5, 10, 15]);
@@ -166,7 +186,8 @@ export class CategoryProductsComponent {
     private _categoriesService: CategoriesService,
     private _activatedRoute: ActivatedRoute,
     private _productsService: ProductsService,
-    private _router: Router
+    private _router: Router,
+    private _storesService: StoresService
   ) {}
 
   private _mapToProductsWithCategoryName(
@@ -234,5 +255,11 @@ export class CategoryProductsComponent {
         )
       )
       .subscribe();
+  }
+
+  onStoreChanged(store: StoreModel): void {
+    this._selectedStoresSubject.value.has(store.id)
+      ? this._selectedStoresSubject.value.delete(store.id)
+      : this._selectedStoresSubject.value.add(store.id);
   }
 }
