@@ -27,15 +27,17 @@
             <h2 class="mb-0 fs-1">{{category.name}}</h2>
           </div>
         </div>
-        <ng-container *ngIf="products$ | async as products">
+        <ng-container *ngIf="sortedProducts$ | async as products">
           <div class="row">
             <div class="d-sm-flex w-100 align-items-center justify-content-between">
               <p class="mb-3 mb-md-0"><strong>{{products.length}}</strong> Products found</p>
-              <select  class="form-select w-sm-30">
-                <option *ngFor="let item of filterOptions$ | async" [value]="item">{{item}}</option>
-              </select>
+              <form class="w-sm-30" [formGroup]="form">
+                <select formControlName="selectFilter" class="form-select">
+                  <option *ngFor="let item of filterOptions$ | async" [ngValue]="item">{{item.value}}</option>
+                </select>
+              </form>
             </div>
-            <div *ngFor="let product of products" class="  col-12 mt-2"><a
+            <div *ngFor="let product of productsList$ | async" class="  col-12 mt-2"><a
                 class="text-decoration-none text-inherit"><!-- card -->
                 <div class="card card-product">
                   <div class="card-body d-sm-flex  text-center align-items-center text-sm-start">
@@ -45,8 +47,8 @@
                     </div>
                     <!-- text -->
                     <div>
-                      <div class="text-smal mb-1"><a class="text-decoration-none text-muted"
-                          href=""><small>{{product.category.name}}</small></a></div>
+                      <div class="text-smal mb-1"><span class="text-decoration-none text-muted"
+                          href=""><small>{{product.category.name}}</small></span></div>
                       <div class="text-truncate">
                         <h2 class="fs-6 text-wrap">{{product.name}}</h2>
                       </div>
@@ -65,6 +67,25 @@
               </a></div>
           </div>
         </ng-container>
+        <nav class="mt-8" *ngIf="paginationData$ | async as pagination">
+          <div class="row">
+            <div class="col-6">
+              <h6>Limit</h6>
+              <ul class="pagination">
+                <li class="page-item" *ngFor="let item of pageSizeOptions$ | async" (click)="onLimitChanged(item)"
+                  [ngClass]="{'page-item active': pagination.pageSize === item}"><a class="page-link">{{item}}</a></li>
+              </ul>
+            </div>
+            <div class="col-6">
+              <h6>Pagination</h6>
+              <ul class="pagination">
+                <li class="page-item" *ngFor="let item of pageNumberOptions$ | async" (click)="onPageChanged(item)"
+                  [ngClass]="{'page-item active': pagination.pageNumber === item}"><a class="page-link">{{item}}</a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
       </section>
     </div>
   </div>
