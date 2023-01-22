@@ -1,3 +1,4 @@
+import { RatingStarsQueryModel } from './../../query-models/rating-stars.query-model';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -28,8 +29,37 @@ export class CategoryProductsComponent {
     { id: 3, value: 'Price: High to Low', order: 'desc' },
     { id: 4, value: 'Avg. Rating', order: 'desc' },
   ]);
+
+  readonly starsFilter$: Observable<RatingStarsQueryModel[]> = of([
+    {
+      stars: [1, 1, 1, 1, 1],
+      id: '1',
+      value: 5,
+    },
+    {
+      stars: [1, 1, 1, 1, 0],
+      id: '2',
+      value: 4,
+    },
+    {
+      stars: [1, 1, 1, 0, 0],
+      id: '3',
+      value: 3,
+    },
+    {
+      stars: [1, 1, 0, 0, 0],
+      id: '4',
+      value: 2,
+    },
+  ]);
   readonly form: FormGroup = new FormGroup({
     selectFilter: new FormControl({ id: 1, value: 'Featured', order: 'desc' }),
+  });
+  readonly filterForm: FormGroup = new FormGroup({
+    priceFrom: new FormControl(),
+    priceTo: new FormControl(),
+    rating: new FormControl(),
+    store: new FormControl(),
   });
 
   readonly categories$: Observable<CategoryModel[]> =
@@ -79,8 +109,36 @@ export class CategoryProductsComponent {
       ),
       tap(console.log)
     );
+
+  readonly filteredProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
+    combineLatest([
+      this.sortedProducts$,
+      this.filterForm.valueChanges.pipe(
+        startWith({
+          priceFrom: 0,
+          priceTo: 2000,
+        })
+      ),
+    ]).pipe(
+      map(([products, filterForm]) => {
+        console.log(filterForm.priceFrom);
+        console.log(filterForm.priceTo);
+        return products
+          .filter(
+            (p) =>
+              p.price >= (filterForm.priceFrom ?? 0) &&
+              p.price <= (filterForm.priceTo ?? 2000)
+          )
+          .filter((p) =>
+            filterForm.rating
+              ? Math.floor(p.ratingValue) === filterForm.rating
+              : p
+          );
+      })
+    );
+
   readonly productsList$: Observable<ProductsWithCategoryNameQueryModel[]> =
-    combineLatest([this.paginationData$, this.sortedProducts$]).pipe(
+    combineLatest([this.paginationData$, this.filteredProducts$]).pipe(
       map(([pagination, products]) => {
         return products.slice(
           (pagination.pageNumber - 1) * pagination.pageSize,
@@ -92,7 +150,7 @@ export class CategoryProductsComponent {
   public pageSizeOptions$: Observable<number[]> = of([5, 10, 15]);
   public pageNumberOptions$: Observable<number[]> = combineLatest([
     this.paginationData$,
-    this.sortedProducts$,
+    this.filteredProducts$,
   ]).pipe(
     map(([pagination, products]) => {
       const pages: number[] = [1];
@@ -160,7 +218,7 @@ export class CategoryProductsComponent {
       .subscribe();
   }
   onLimitChanged(size: number): void {
-    combineLatest([this.paginationData$, this.sortedProducts$])
+    combineLatest([this.paginationData$, this.filteredProducts$])
       .pipe(
         take(1),
         tap(([pagination, products]) =>
