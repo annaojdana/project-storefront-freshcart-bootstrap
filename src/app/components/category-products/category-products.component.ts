@@ -33,10 +33,10 @@ import { ProductModel } from '../../models/product.model';
 })
 export class CategoryProductsComponent {
   readonly filterOptions$: Observable<FilterOptionsQueryModel[]> = of([
-    { id: 1, value: 'Featured', order: 'desc' },
-    { id: 2, value: 'Price: Low to High', order: 'asc' },
-    { id: 3, value: 'Price: High to Low', order: 'desc' },
-    { id: 4, value: 'Avg. Rating', order: 'desc' },
+    { id: 1, key: 'featureValue', value: 'Featured', order: 'desc' },
+    { id: 2, key: 'price', value: 'Price: Low to High', order: 'asc' },
+    { id: 3, key: 'price', value: 'Price: High to Low', order: 'desc' },
+    { id: 4, key: 'ratingValue', value: 'Avg. Rating', order: 'desc' },
   ]);
 
   readonly starsFilter$: Observable<RatingStarsQueryModel[]> = of([
@@ -103,20 +103,13 @@ export class CategoryProductsComponent {
         this._mapToProductsWithCategoryName(products, categories)
           .filter((p) => p.category.id.includes(params['categoryId']))
           .sort((a, b) => {
-            const select = selectFilter['selectFilter'];
-            if (select.id === 2) {
-              return a.price - b.price;
-            }
-            if (select.id === 3) {
-              return b.price - a.price;
-            }
-            if (select.id === 4) {
-              return b.ratingValue - a.ratingValue;
-            }
-            return b.featureValue - a.featureValue;
+            return this.sortProductsConditional(
+              selectFilter['selectFilter'],
+              a,
+              b
+            );
           })
-      ),
-      tap(console.log)
+      )
     );
   readonly stores$: Observable<StoreModel[]> =
     this._storesService.getAllStores();
@@ -136,7 +129,6 @@ export class CategoryProductsComponent {
       ),
     ]).pipe(
       map(([products, stores, filterForm]) => {
-        console.log(stores);
         return products
           .filter(
             (p) =>
@@ -150,7 +142,10 @@ export class CategoryProductsComponent {
           )
           .filter((p) =>
             stores.size > 0
-              ? stores.forEach((s) => (p.storeIds.includes(s) ? p : []))
+              ? p.storeIds
+                  .sort()
+                  .toString()
+                  .includes([...stores].sort().join(','))
               : p
           );
       })
@@ -223,6 +218,25 @@ export class CategoryProductsComponent {
     return value;
   }
 
+  private sortProductsConditional(
+    select: FilterOptionsQueryModel,
+    productA: ProductsWithCategoryNameQueryModel,
+    productB: ProductsWithCategoryNameQueryModel
+  ): number {
+    if (select.order === 'desc') {
+      return (
+        +productB[select.key as keyof typeof productB] -
+        +productA[select.key as keyof typeof productA]
+      );
+    }
+    if (select.order === 'asc') {
+      return (
+        +productA[select.key as keyof typeof productA] -
+        +productB[select.key as keyof typeof productB]
+      );
+    }
+    return 0;
+  }
   onPageChanged(page: number): void {
     this.paginationData$
       .pipe(
