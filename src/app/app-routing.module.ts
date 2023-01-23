@@ -7,7 +7,11 @@ import { CategoryProductsComponentModule } from './components/category-products/
 import { StoreProductsComponentModule } from './components/store-products/store-products.component-module';
 import { HomeComponentModule } from './components/home/home.component-module';
 
-const routes: Routes = [{ path: 'categories/:categoryId', component: CategoryProductsComponent }, { path: 'stores/:storeId', component: StoreProductsComponent }, { path: '', component: HomeComponent }];
+const routes: Routes = [
+  { path: 'categories/:categoryId', component: CategoryProductsComponent },
+  { path: 'stores/:storeId', component: StoreProductsComponent },
+  { path: 'project-storefront-freshcart-bootstrap/', component: HomeComponent },
+];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes), CategoryProductsComponentModule, StoreProductsComponentModule, HomeComponentModule],
