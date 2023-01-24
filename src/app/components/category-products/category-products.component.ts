@@ -62,10 +62,14 @@ export class CategoryProductsComponent {
       value: 2,
     },
   ]);
-  readonly form: FormGroup = new FormGroup({
-    selectFilter: new FormControl(),
+  readonly sortForm: FormGroup = new FormGroup({
+    select: new FormControl({
+      id: 1,
+      key: 'featureValue',
+      value: 'Featured',
+      order: 'desc',
+    }),
   });
-
   readonly priceRatingForm: FormGroup = new FormGroup({
     priceFrom: new FormControl(),
     priceTo: new FormControl(),
@@ -100,9 +104,9 @@ export class CategoryProductsComponent {
       this._activatedRoute.params,
       this._productsService.getAll(),
       this._categoriesService.getAllCategory(),
-      this.form.valueChanges.pipe(
+      this.sortForm.valueChanges.pipe(
         startWith({
-          selectFilter: {
+          select: {
             id: 1,
             key: 'featureValue',
             value: 'Featured',
@@ -111,11 +115,11 @@ export class CategoryProductsComponent {
         })
       ),
     ]).pipe(
-      map(([params, products, categories, selectFilter]) =>
+      map(([params, products, categories, select]) =>
         this._mapToProductsWithCategoryName(products, categories)
           .filter((p) => p.category.id.includes(params['categoryId']))
           .sort((a, b) => {
-            return this.sortProductsConditional(selectFilter, a, b);
+            return this.sortProductsConditional(select['select'], a, b);
           })
       ),
       shareReplay(1)
@@ -149,7 +153,11 @@ export class CategoryProductsComponent {
     this._storesService.getAllStores(),
   ]).pipe(
     map(([controls, stores]) => {
-      return stores.filter((s) => controls[s.id] === true).map(s=>s.id).sort().join(',');
+      return stores
+        .filter((s) => controls[s.id] === true)
+        .map((s) => s.id)
+        .sort()
+        .join(',');
     })
   );
 
@@ -177,7 +185,6 @@ export class CategoryProductsComponent {
               : p
           )
           .filter((p) => {
-
             return storesIds ? p.storeIds.join(',').includes(storesIds) : p;
           });
       })
@@ -216,12 +223,6 @@ export class CategoryProductsComponent {
     private _storesService: StoresService
   ) {}
 
-  private _mapStores(stores: StoreModel[]): Record<string, StoreModel> {
-    return stores.reduce((a, s) => ({ ...a, [s.id]: s }), {}) as Record<
-      string,
-      StoreModel
-    >;
-  }
   private _mapToProductsWithCategoryName(
     products: ProductModel[],
     categories: CategoryModel[]

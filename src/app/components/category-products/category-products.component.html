@@ -69,13 +69,13 @@
             <h2 class="mb-0 fs-1">{{category.name}}</h2>
           </div>
         </div>
-        <ng-container>
+        <ng-container *ngIf="filterOptions$ | async as options">
           <div class="row" *ngIf="filteredProducts$ | async as products">
             <div class="d-sm-flex w-100 align-items-center justify-content-between">
               <p class="mb-3 mb-md-0"><strong>{{products.length}}</strong> Products found</p>
-              <form class="w-sm-30" [formGroup]="form">
-                <select formControlName="selectFilter" class="form-select">
-                  <option *ngFor="let item of filterOptions$ | async" [ngValue]="item">{{item.value}}</option>
+              <form class="w-sm-30" [formGroup]="sortForm">
+                <select formControlName="select" class="form-select">
+                  <option *ngFor="let item of options" [ngValue]="item">{{item.value}}</option>
                 </select>
               </form>
             </div>
