@@ -2,10 +2,11 @@
   <div class="container">
     <div class="row gx-10">
       <aside class="col-lg-3 col-md-4 mb-6 mb-md-0">
-        <div class="offcanvas offcanvas-start offcanvas-collapse w-md-50 ">
+        <div class="offcanvas offcanvas-start offcanvas-collapse w-md-50 " tabindex="-1"
+          [ngClass]="{show: filterBtn$|async}">
           <div class="offcanvas-header d-lg-none">
             <h5 class="offcanvas-title">Filter</h5>
-            <button type="button" class="btn-close" aria-label="Close"></button>
+            <button type="button" class="btn-close" aria-label="Close" (click)=" onFilterToggle()"></button>
           </div>
 
           <div class="offcanvas-body ps-lg-2 pt-lg-0">
@@ -60,24 +61,39 @@
               </ng-container>
             </form>
           </div>
-        </div>
 
+        </div>
+        <!-- <div class="offcanvas-backdrop fade" [ngClass]="{show:filterBtn$ | async}"></div> -->
       </aside>
+
       <section class="col-lg-9 col-md-12">
         <div class="card mb-4 bg-light border-0" *ngIf="categoryDetails$ | async as category">
           <div class=" card-body p-9">
             <h2 class="mb-0 fs-1">{{category.name}}</h2>
           </div>
         </div>
+
         <ng-container *ngIf="filterOptions$ | async as options">
           <div class="row" *ngIf="filteredProducts$ | async as products">
             <div class="d-sm-flex w-100 align-items-center justify-content-between">
               <p class="mb-3 mb-md-0"><strong>{{products.length}}</strong> Products found</p>
-              <form class="w-sm-30" [formGroup]="sortForm">
-                <select formControlName="select" class="form-select">
-                  <option *ngFor="let item of options" [ngValue]="item">{{item.value}}</option>
-                </select>
-              </form>
+              <div class="d-flex justify-content-end">
+                <div class="me-2 d-lg-none">
+                  <button class="btn btn-outline-gray-400 text-muted" data-bs-toggle="offcanvas"
+                    (click)=" onFilterToggle()" role="button" aria-controls="offcanvasCategory"><svg
+                      xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                      class="feather feather-filter me-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg> Filters</button>
+                </div>
+                <form [formGroup]="sortForm">
+
+                  <select formControlName="select" class="form-select">
+                    <option *ngFor="let item of options" [ngValue]="item">{{item.value}}</option>
+                  </select>
+                </form>
+              </div>
             </div>
             <div *ngFor="let product of productsList$ | async" class="  col-12 mt-2"><a
                 class="text-decoration-none text-inherit"><!-- card -->
@@ -133,6 +149,7 @@
           </nav>
         </ng-container>
       </section>
+
     </div>
   </div>
 </div>

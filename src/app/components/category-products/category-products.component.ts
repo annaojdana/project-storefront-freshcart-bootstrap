@@ -214,7 +214,10 @@ export class CategoryProductsComponent {
       return pages;
     })
   );
-
+  private _filterBtnSubject: BehaviorSubject<boolean> =
+    new BehaviorSubject<boolean>(false);
+  public filterBtn$: Observable<boolean> =
+    this._filterBtnSubject.asObservable();
   constructor(
     private _categoriesService: CategoriesService,
     private _activatedRoute: ActivatedRoute,
@@ -308,7 +311,9 @@ export class CategoryProductsComponent {
       )
       .subscribe();
   }
-
+  onFilterToggle(): void {
+    this._filterBtnSubject.next(!this._filterBtnSubject.value);
+  }
   private createFormControlForCheckbox(stores: StoreModel[]) {
     const targetGroup: FormGroup = this.storesForm.get('stores') as FormGroup;
     stores.forEach((s) => targetGroup.addControl(s.id, new FormControl(false)));

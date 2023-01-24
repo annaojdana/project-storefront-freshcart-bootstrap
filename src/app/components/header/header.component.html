@@ -43,10 +43,10 @@
   </div>
 </nav>
 <div class="border-bottom pb-lg-4 pb-3">
-  <nav *ngIf=" mobileMenu$ | async as menu" class="navbar navbar-expand-lg navbar-light navbar-default pt-0 pb-0">
-    <div class="container px-0 px-md-3">
+  <nav class="navbar navbar-expand-lg navbar-light navbar-default pt-0 pb-0">
+    <div *ngIf="mobileMenu$ | async as menu" class="container px-0 px-md-3">
 
-      <div class="offcanvas offcanvas-start p-4 p-lg-0" [ngClass]="{show:menu}">
+      <div class="offcanvas offcanvas-start p-4 p-lg-0" [ngClass]="{'show':menu.isMenuOpen}">
         <div class="d-flex justify-content-between align-items-center mb-2 d-block d-lg-none"> <a routerLink="/"
             (click)="onMobileMenuToggle()"><img src="/assets/images/logo/freshcart-logo.svg"
               alt="eCommerce HTML Template"></a> <button type="button" class="btn-close" aria-label="Close"
@@ -61,7 +61,8 @@
         </div>
 
       </div>
-      <div class="offcanvas-backdrop fade" [ngClass]="{show:menu}"></div>
+     
     </div>
+
   </nav>
 </div>
