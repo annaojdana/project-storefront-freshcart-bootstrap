@@ -1,14 +1,16 @@
-import { StoreQueryModel } from './../../query-models/store.query-model';
 import {
   ChangeDetectionStrategy,
   Component,
   ViewEncapsulation,
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
-import { switchMap, map, tap } from 'rxjs/operators';
-import { StoreModel } from '../../models/store.model';
+import { Observable, combineLatest } from 'rxjs';
+import { filter, map, switchMap, tap } from 'rxjs/operators';
+import { StoreQueryModel } from '../../query-models/store.query-model';
 import { StoresService } from '../../services/stores.service';
+import { ProductsService } from '../../services/products.service';
+import { ProductModel } from '../../models/product.model';
+import { StoreModel } from '../../models/store.model';
 
 @Component({
   selector: 'app-store-products',
@@ -18,24 +20,33 @@ import { StoresService } from '../../services/stores.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StoreProductsComponent {
-  readonly store$: Observable<StoreQueryModel> =
+  
+  readonly storeWithProducts$: Observable<StoreQueryModel> = combineLatest([
     this._activatedRoute.params.pipe(
-      switchMap((data) =>
-        this._storesService.getOneStore(data['storeId']).pipe(
-          map((s) => ({
-            name: s.name,
-            logoUrl: s.logoUrl,
-            distanceInKm: s.distanceInMeters / 1000,
-            tagIds: s.tagIds,
-            id: s.id,
-          })),
-          tap(console.log)
-        )
-      )
-    );
+      switchMap((data) => this._storesService.getOneStore(data['storeId']))
+    ),
+    this._productsService.getAll(),
+  ]).pipe(
+    map(([store, products]) => this._mapToStoreWithProducts(products, store)),
+    tap(console.log)
+  );
 
   constructor(
     private _activatedRoute: ActivatedRoute,
-    private _storesService: StoresService
+    private _storesService: StoresService,
+    private _productsService: ProductsService
   ) {}
+
+  private _mapToStoreWithProducts(
+    products: ProductModel[],
+    store: StoreModel
+  ): StoreQueryModel {
+    return {
+      name: store.name,
+      logoUrl: store.logoUrl,
+      id: store.id,
+      distanceInKm: store.distanceInMeters / 1000,
+      products: products.filter((p) => p.storeIds.includes(store.id)),
+    };
+  }
 }

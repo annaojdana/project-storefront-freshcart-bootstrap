@@ -3,11 +3,26 @@ import {
   Component,
   ViewEncapsulation,
 } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { Observable, combineLatest, of, BehaviorSubject } from 'rxjs';
+import {
+  debounceTime,
+  map,
+  startWith,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs/operators';
+import { FilterOptionsQueryModel } from '../../query-models/filter-options.query-model';
+import { RatingStarsQueryModel } from '../../query-models/rating-stars.query-model';
 import { CategoryModel } from '../../models/category.model';
+import { ProductsWithCategoryNameQueryModel } from '../../query-models/products-with-category-name.query-model';
+import { StoreModel } from '../../models/store.model';
 import { CategoriesService } from '../../services/categories.service';
+import { ProductsService } from '../../services/products.service';
+import { StoresService } from '../../services/stores.service';
+import { ProductModel } from '../../models/product.model';
 
 @Component({
   selector: 'app-category-products',
@@ -17,6 +32,45 @@ import { CategoriesService } from '../../services/categories.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryProductsComponent {
+  readonly filterOptions$: Observable<FilterOptionsQueryModel[]> = of([
+    { id: 1, key: 'featureValue', value: 'Featured', order: 'desc' },
+    { id: 2, key: 'price', value: 'Price: Low to High', order: 'asc' },
+    { id: 3, key: 'price', value: 'Price: High to Low', order: 'desc' },
+    { id: 4, key: 'ratingValue', value: 'Avg. Rating', order: 'desc' },
+  ]);
+
+  readonly starsFilter$: Observable<RatingStarsQueryModel[]> = of([
+    {
+      stars: [1, 1, 1, 1, 1],
+      id: '1',
+      value: 5,
+    },
+    {
+      stars: [1, 1, 1, 1, 0],
+      id: '2',
+      value: 4,
+    },
+    {
+      stars: [1, 1, 1, 0, 0],
+      id: '3',
+      value: 3,
+    },
+    {
+      stars: [1, 1, 0, 0, 0],
+      id: '4',
+      value: 2,
+    },
+  ]);
+  readonly form: FormGroup = new FormGroup({
+    selectFilter: new FormControl('Featured'),
+  });
+  readonly filterForm: FormGroup = new FormGroup({
+    priceFrom: new FormControl(),
+    priceTo: new FormControl(),
+    rating: new FormControl(),
+    stores: new FormControl(false),
+    search: new FormControl(),
+  });
   readonly categories$: Observable<CategoryModel[]> =
     this._categoriesService.getAllCategory();
   readonly categoryDetails$: Observable<CategoryModel> =
@@ -25,10 +79,218 @@ export class CategoryProductsComponent {
         this._categoriesService.getOneCategory(data['categoryId'])
       )
     );
+  readonly paginationData$: Observable<{
+    pageSize: number;
+    pageNumber: number;
+  }> = this._activatedRoute.queryParams.pipe(
+    map((data) => {
+      return {
+        pageSize: data['pageSize'] === undefined ? 5 : +data['pageSize'],
+        pageNumber: data['pageNumber'] === undefined ? 1 : +data['pageNumber'],
+      };
+    })
+  );
+  readonly sortedProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
+    combineLatest([
+      this._activatedRoute.params,
+      this._productsService.getAll(),
+      this._categoriesService.getAllCategory(),
+      this.form.valueChanges.pipe(
+        startWith({ selectFilter: { id: 1, value: 'Featured', order: 'desc' } })
+      ),
+    ]).pipe(
+      map(([params, products, categories, selectFilter]) =>
+        this._mapToProductsWithCategoryName(products, categories)
+          .filter((p) => p.category.id.includes(params['categoryId']))
+          .sort((a, b) => {
+            return this.sortProductsConditional(
+              selectFilter['selectFilter'],
+              a,
+              b
+            );
+          })
+      )
+    );
+
+  readonly searchValue$: Observable<string | null> =
+    this.filterForm.valueChanges.pipe(
+      map((form) => form.search),
+      debounceTime(1000),
+      startWith(null)
+    );
+
+  readonly searchedStores$: Observable<StoreModel[]> = combineLatest([
+    this._storesService.getAllStores(),
+    this.searchValue$,
+  ]).pipe(
+    map(([stores, search]) =>
+      stores.filter((s) =>
+        search !== null ? s.name.toLowerCase().includes(search) : []
+      )
+    )
+  );
+  private _selectedStoresSubject: BehaviorSubject<Set<string>> =
+    new BehaviorSubject<Set<string>>(new Set());
+  public selectedStores$: Observable<Set<string>> =
+    this._selectedStoresSubject.asObservable();
+
+
+
+  readonly filteredProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
+    combineLatest([
+      this.sortedProducts$,
+      this.selectedStores$,
+      this.filterForm.valueChanges.pipe(
+        startWith({
+          priceFrom: 0,
+          priceTo: 2000,
+        })
+      ),
+    ]).pipe(
+      map(([products, stores, filterForm]) => {
+        return products
+          .filter(
+            (p) =>
+              p.price >= (filterForm.priceFrom ?? 0) &&
+              p.price <= (filterForm.priceTo ?? 2000)
+          )
+          .filter((p) =>
+            filterForm.rating
+              ? Math.floor(p.ratingValue) === filterForm.rating
+              : p
+          )
+        .filter((p) => {
+          return stores.size > 0
+            ? p.storeIds
+                .sort()
+                .toString()
+                .includes([...stores].sort().join(','))
+            : p;
+        });
+      })
+    );
+
+  readonly productsList$: Observable<ProductsWithCategoryNameQueryModel[]> =
+    combineLatest([this.paginationData$, this.filteredProducts$]).pipe(
+      map(([pagination, products]) => {
+        return products.slice(
+          (pagination.pageNumber - 1) * pagination.pageSize,
+          pagination.pageNumber * pagination.pageSize
+        );
+      })
+    );
+
+  public pageSizeOptions$: Observable<number[]> = of([5, 10, 15]);
+  public pageNumberOptions$: Observable<number[]> = combineLatest([
+    this.paginationData$,
+    this.filteredProducts$,
+  ]).pipe(
+    map(([pagination, products]) => {
+      const pages: number[] = [1];
+      const max = Math.ceil(products.length / pagination.pageSize);
+      for (let i = 2; i < max + 1; i++) {
+        pages.push(i);
+      }
+      return pages;
+    })
+  );
 
   constructor(
     private _categoriesService: CategoriesService,
+    private _activatedRoute: ActivatedRoute,
+    private _productsService: ProductsService,
     private _router: Router,
-    private _activatedRoute: ActivatedRoute
+    private _storesService: StoresService
   ) {}
+
+  private _mapToProductsWithCategoryName(
+    products: ProductModel[],
+    categories: CategoryModel[]
+  ): ProductsWithCategoryNameQueryModel[] {
+    const categoryMap = categories.reduce(
+      (a, c) => ({ ...a, [c.id]: c }),
+      {}
+    ) as Record<string, CategoryModel>;
+    return products.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: categoryMap[product.categoryId],
+      ratingValue: product.ratingValue,
+      stars: this.ratingToArray(product.ratingValue),
+      ratingCount: product.ratingCount,
+      imageUrl: product.imageUrl,
+      featureValue: product.featureValue,
+      storeIds: product.storeIds,
+    }));
+  }
+
+  private ratingToArray(ratingValue: number): number[] {
+    const value: number[] = [];
+
+    for (let i = 1; i <= ratingValue; i++) {
+      value.push(1);
+    }
+
+    ratingValue % 1 === 0 ? value : value.push(0.5);
+    return value;
+  }
+
+  private sortProductsConditional(
+    select: FilterOptionsQueryModel,
+    productA: ProductsWithCategoryNameQueryModel,
+    productB: ProductsWithCategoryNameQueryModel
+  ): number {
+    if (select.order === 'desc') {
+      return (
+        +productB[select.key as keyof typeof productB] -
+        +productA[select.key as keyof typeof productA]
+      );
+    }
+    if (select.order === 'asc') {
+      return (
+        +productA[select.key as keyof typeof productA] -
+        +productB[select.key as keyof typeof productB]
+      );
+    }
+    return 0;
+  }
+  onPageChanged(page: number): void {
+    this.paginationData$
+      .pipe(
+        take(1),
+        tap((data) => {
+          this._router.navigate([], {
+            queryParams: {
+              pageNumber: page,
+              pageSize: data.pageSize,
+            },
+          });
+        })
+      )
+      .subscribe();
+  }
+  onLimitChanged(size: number): void {
+    combineLatest([this.paginationData$, this.filteredProducts$])
+      .pipe(
+        take(1),
+        tap(([pagination, products]) =>
+          this._router.navigate([], {
+            queryParams: {
+              pageSize: size,
+              pageNumber: Math.min(
+                pagination.pageNumber,
+                Math.ceil(products.length / size)
+              ),
+            },
+          })
+        )
+      )
+      .subscribe();
+  }
+  onCheckChange(store: StoreModel): void {
+    this._selectedStoresSubject.value.has(store.id)
+      ? this._selectedStoresSubject.value.delete(store.id)
+      : this._selectedStoresSubject.value.add(store.id);
+  }
 }

@@ -81,11 +81,6 @@ export class HomeComponent {
     products: ProductModel[],
     categories: CategoryModel[]
   ): CategoryWithProductsQueryModel[] {
-    // const productsMap = products.reduce(
-    //   (a, p) => ({ ...a, [p.categoryId]: p }),
-    //   {}
-    // ) as Record<string, ProductModel>;
-    // console.log(productsMap);
 
     return categories.map((category) => ({
       name: category.name,

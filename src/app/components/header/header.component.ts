@@ -1,3 +1,4 @@
+import { tap } from 'rxjs/operators';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -19,8 +20,9 @@ export class HeaderComponent {
     this._categoriesService.getAllCategory();
   private _mobileMenuSubject: BehaviorSubject<boolean> =
     new BehaviorSubject<boolean>(false);
-  public mobileMenu$: Observable<boolean> =
-    this._mobileMenuSubject.asObservable();
+  public mobileMenu$: Observable<boolean> = this._mobileMenuSubject
+    .asObservable()
+    .pipe(tap(console.log));
 
   constructor(private _categoriesService: CategoriesService) {}
   onMobileMenuToggle(): void {
