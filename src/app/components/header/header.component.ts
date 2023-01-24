@@ -1,5 +1,4 @@
 import { MenuQueryModel } from './../../query-models/menu.query-model';
-import { tap } from 'rxjs/operators';
 import {
   ChangeDetectionStrategy,
   Component,
