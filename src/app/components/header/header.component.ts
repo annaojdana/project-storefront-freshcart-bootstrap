@@ -25,7 +25,6 @@ export class HeaderComponent {
     .asObservable()
     .pipe(
       map((data) => ({ name: 'menu', isMenuOpen: data })),
-      tap(console.log)
     );
 
   constructor(private _categoriesService: CategoriesService) {}

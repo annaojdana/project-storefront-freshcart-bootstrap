@@ -90,6 +90,7 @@
                 <form [formGroup]="sortForm">
 
                   <select formControlName="select" class="form-select">
+                    <option  [ngValue]="default">{{default.value}}</option>
                     <option *ngFor="let item of options" [ngValue]="item">{{item.value}}</option>
                   </select>
                 </form>

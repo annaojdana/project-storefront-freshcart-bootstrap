@@ -33,8 +33,8 @@ import { ProductModel } from '../../models/product.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryProductsComponent {
+  default = { id: 1, key: 'featureValue', value: 'Featured', order: 'desc' };
   readonly filterOptions$: Observable<FilterOptionsQueryModel[]> = of([
-    { id: 1, key: 'featureValue', value: 'Featured', order: 'desc' },
     { id: 2, key: 'price', value: 'Price: Low to High', order: 'asc' },
     { id: 3, key: 'price', value: 'Price: High to Low', order: 'desc' },
     { id: 4, key: 'ratingValue', value: 'Avg. Rating', order: 'desc' },
@@ -63,12 +63,7 @@ export class CategoryProductsComponent {
     },
   ]);
   readonly sortForm: FormGroup = new FormGroup({
-    select: new FormControl({
-      id: 1,
-      key: 'featureValue',
-      value: 'Featured',
-      order: 'desc',
-    }),
+    select: new FormControl(this.default),
   });
   readonly priceRatingForm: FormGroup = new FormGroup({
     priceFrom: new FormControl(),
@@ -106,12 +101,7 @@ export class CategoryProductsComponent {
       this._categoriesService.getAllCategory(),
       this.sortForm.valueChanges.pipe(
         startWith({
-          select: {
-            id: 1,
-            key: 'featureValue',
-            value: 'Featured',
-            order: 'desc',
-          },
+          select: this.default,
         })
       ),
     ]).pipe(
@@ -264,6 +254,7 @@ export class CategoryProductsComponent {
     productA: ProductsWithCategoryNameQueryModel,
     productB: ProductsWithCategoryNameQueryModel
   ): number {
+  
     if (select.order === 'desc') {
       return (
         +productB[select.key as keyof typeof productB] -
