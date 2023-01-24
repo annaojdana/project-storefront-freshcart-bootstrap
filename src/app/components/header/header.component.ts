@@ -1,10 +1,11 @@
+import { MenuQueryModel } from './../../query-models/menu.query-model';
 import { tap } from 'rxjs/operators';
 import {
   ChangeDetectionStrategy,
   Component,
   ViewEncapsulation,
 } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable, map } from 'rxjs';
 import { CategoryModel } from '../../models/category.model';
 import { CategoriesService } from '../../services/categories.service';
 
@@ -20,11 +21,14 @@ export class HeaderComponent {
     this._categoriesService.getAllCategory();
   private _mobileMenuSubject: BehaviorSubject<boolean> =
     new BehaviorSubject<boolean>(false);
-  public mobileMenu$: Observable<boolean> = this._mobileMenuSubject
+  public mobileMenu$: Observable<MenuQueryModel> = this._mobileMenuSubject
     .asObservable()
-    .pipe(tap(console.log));
+    .pipe(
+      map((data) => ({ name: 'menu', isMenuOpen: data })),
+    );
 
   constructor(private _categoriesService: CategoriesService) {}
+
   onMobileMenuToggle(): void {
     this._mobileMenuSubject.next(!this._mobileMenuSubject.value);
   }
