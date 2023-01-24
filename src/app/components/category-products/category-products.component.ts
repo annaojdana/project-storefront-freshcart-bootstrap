@@ -13,6 +13,7 @@ import {
   switchMap,
   take,
   tap,
+  debounceTime,
 } from 'rxjs/operators';
 import { FilterOptionsQueryModel } from '../../query-models/filter-options.query-model';
 import { RatingStarsQueryModel } from '../../query-models/rating-stars.query-model';
@@ -69,38 +70,38 @@ export class CategoryProductsComponent {
     priceTo: new FormControl(),
     rating: new FormControl(),
     stores: new FormControl(),
+    store: new FormControl(),
   });
-
   readonly categories$: Observable<CategoryModel[]> =
-    this._categoriesService.getAllCategory();
+  this._categoriesService.getAllCategory();
   readonly categoryDetails$: Observable<CategoryModel> =
-    this._activatedRoute.params.pipe(
-      switchMap((data) =>
-        this._categoriesService.getOneCategory(data['categoryId'])
-      )
+  this._activatedRoute.params.pipe(
+    switchMap((data) =>
+    this._categoriesService.getOneCategory(data['categoryId'])
+    )
     );
-  readonly paginationData$: Observable<{
-    pageSize: number;
-    pageNumber: number;
-  }> = this._activatedRoute.queryParams.pipe(
-    map((data) => {
-      return {
-        pageSize: data['pageSize'] === undefined ? 5 : +data['pageSize'],
-        pageNumber: data['pageNumber'] === undefined ? 1 : +data['pageNumber'],
-      };
-    })
-  );
-  readonly sortedProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
-    combineLatest([
-      this._activatedRoute.params,
-      this._productsService.getAll(),
-      this._categoriesService.getAllCategory(),
-      this.form.valueChanges.pipe(
-        startWith({ selectFilter: { id: 1, value: 'Featured', order: 'desc' } })
-      ),
-    ]).pipe(
-      map(([params, products, categories, selectFilter]) =>
-        this._mapToProductsWithCategoryName(products, categories)
+    readonly paginationData$: Observable<{
+      pageSize: number;
+      pageNumber: number;
+    }> = this._activatedRoute.queryParams.pipe(
+      map((data) => {
+        return {
+          pageSize: data['pageSize'] === undefined ? 5 : +data['pageSize'],
+          pageNumber: data['pageNumber'] === undefined ? 1 : +data['pageNumber'],
+        };
+      })
+      );
+      readonly sortedProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
+      combineLatest([
+        this._activatedRoute.params,
+        this._productsService.getAll(),
+        this._categoriesService.getAllCategory(),
+        this.form.valueChanges.pipe(
+          startWith({ selectFilter: { id: 1, value: 'Featured', order: 'desc' } })
+          ),
+        ]).pipe(
+          map(([params, products, categories, selectFilter]) =>
+          this._mapToProductsWithCategoryName(products, categories)
           .filter((p) => p.category.id.includes(params['categoryId']))
           .sort((a, b) => {
             return this.sortProductsConditional(
@@ -111,8 +112,32 @@ export class CategoryProductsComponent {
           })
       )
     );
-  readonly stores$: Observable<StoreModel[]> =
-    this._storesService.getAllStores();
+    // readonly stores$: Observable<StoreModel[]> =
+    // readonly searchValue$: Observable<string | null> = this.filterForm.valueChanges.pipe(
+    //   map((form) => form.stores),
+    //   debounceTime(1000),
+    //   startWith(null)
+    // );
+
+  readonly searchedStores$: Observable<StoreModel[]> = combineLatest([
+    this._storesService.getAllStores(),
+     this.filterForm.valueChanges.pipe(
+      map((form) => form.stores),
+      debounceTime(1000),
+      startWith(null)
+    )
+  ]).pipe(
+    map(([stores, search]) => {
+      console.log(search);
+      return search !== null
+        ? stores.filter((s) =>
+            s.name.toLowerCase().includes(search.toLowerCase())
+          )
+        : stores;
+    }),
+    tap(console.log)
+  );
+
   private _selectedStoresSubject: BehaviorSubject<Set<string>> =
     new BehaviorSubject<Set<string>>(new Set());
   public selectedStores$: Observable<Set<string>> =
@@ -140,14 +165,15 @@ export class CategoryProductsComponent {
               ? Math.floor(p.ratingValue) === filterForm.rating
               : p
           )
-          .filter((p) =>
-            stores.size > 0
+          .filter((p) => {
+            console.log(stores);
+            return stores.size > 0
               ? p.storeIds
                   .sort()
                   .toString()
                   .includes([...stores].sort().join(','))
-              : p
-          );
+              : p;
+          });
       })
     );
 
@@ -158,8 +184,7 @@ export class CategoryProductsComponent {
           (pagination.pageNumber - 1) * pagination.pageSize,
           pagination.pageNumber * pagination.pageSize
         );
-      }),
-      shareReplay(1)
+      })
     );
 
   public pageSizeOptions$: Observable<number[]> = of([5, 10, 15]);
@@ -270,10 +295,11 @@ export class CategoryProductsComponent {
       )
       .subscribe();
   }
-
   onStoreChanged(store: StoreModel): void {
+    console.log("on click:", store);
     this._selectedStoresSubject.value.has(store.id)
       ? this._selectedStoresSubject.value.delete(store.id)
       : this._selectedStoresSubject.value.add(store.id);
+    console.log("subject", this._selectedStoresSubject.value);
   }
 }

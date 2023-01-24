@@ -20,11 +20,15 @@
             <div class="mb-8">
 
               <h5 class="mb-3">Stores</h5>
-              <div *ngFor="let store of stores$ | async" class="form-check mb-2"><input [id]="store.id"
-                  class="form-check-input" type="checkbox" value="store.id" formControlName="stores"
-                  (click)="onStoreChanged(store)">
-                <label [for]="store.id" class="form-check-label">{{store.name}}</label>
+              <div>
+                <input type="search" placeholder="Search by store" class="form-control mb-3" formControlName="stores">
               </div>
+
+                <div *ngFor="let store of searchedStores$ | async" class="form-check mb-2"><input [id]="store.id"
+                    class="form-check-input" type="checkbox" (click)="onStoreChanged(store)" value="store.id" formControlName="store">
+                  <label [for]="store.id" class="form-check-label">{{store.name}}</label>
+                </div>
+
             </div>
             <div class="mb-8">
 
