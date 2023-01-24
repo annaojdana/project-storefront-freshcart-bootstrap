@@ -63,15 +63,15 @@ export class CategoryProductsComponent {
     },
   ]);
   readonly form: FormGroup = new FormGroup({
-    value: new FormControl('Featured'),
-    key: new FormControl('featureValue'),
-    order: new FormControl('desc'),
-    id: new FormControl(1),
+    selectFilter: new FormControl(),
   });
-  readonly filterForm: FormGroup = new FormGroup({
+
+  readonly priceRatingForm: FormGroup = new FormGroup({
     priceFrom: new FormControl(),
     priceTo: new FormControl(),
     rating: new FormControl(),
+  });
+  readonly storesForm: FormGroup = new FormGroup({
     stores: new FormGroup({}),
     search: new FormControl(),
   });
@@ -92,14 +92,24 @@ export class CategoryProductsComponent {
         pageSize: data['pageSize'] === undefined ? 5 : +data['pageSize'],
         pageNumber: data['pageNumber'] === undefined ? 1 : +data['pageNumber'],
       };
-    })
+    }),
+    shareReplay(1)
   );
   readonly sortedProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
     combineLatest([
       this._activatedRoute.params,
       this._productsService.getAll(),
       this._categoriesService.getAllCategory(),
-      this.form.valueChanges,
+      this.form.valueChanges.pipe(
+        startWith({
+          selectFilter: {
+            id: 1,
+            key: 'featureValue',
+            value: 'Featured',
+            order: 'desc',
+          },
+        })
+      ),
     ]).pipe(
       map(([params, products, categories, selectFilter]) =>
         this._mapToProductsWithCategoryName(products, categories)
@@ -107,10 +117,11 @@ export class CategoryProductsComponent {
           .sort((a, b) => {
             return this.sortProductsConditional(selectFilter, a, b);
           })
-      )
+      ),
+      shareReplay(1)
     );
 
-  readonly searchValue$: Observable<string> = this.filterForm.valueChanges.pipe(
+  readonly searchValue$: Observable<string> = this.storesForm.valueChanges.pipe(
     map((form) => form.search),
     debounceTime(1000),
     startWith(''),
@@ -132,41 +143,42 @@ export class CategoryProductsComponent {
       this.createFormControlForCheckbox(stores);
     })
   );
-  private _selectedStoresSubject: BehaviorSubject<Set<string>> =
-    new BehaviorSubject<Set<string>>(new Set());
-  public selectedStores$: Observable<Set<string>> =
-    this._selectedStoresSubject.asObservable();
+
+  public selectedStores$: Observable<string> = combineLatest([
+    this.storesForm.valueChanges.pipe(map((form) => form.stores)),
+    this._storesService.getAllStores(),
+  ]).pipe(
+    map(([controls, stores]) => {
+      return stores.filter((s) => controls[s.id] === true).map(s=>s.id).sort().join(',');
+    })
+  );
 
   readonly filteredProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
     combineLatest([
       this.sortedProducts$,
       this.selectedStores$,
-      this.filterForm.valueChanges.pipe(
+      this.priceRatingForm.valueChanges.pipe(
         startWith({
           priceFrom: 0,
           priceTo: 2000,
         })
       ),
     ]).pipe(
-      map(([products, stores, filterForm]) => {
+      map(([products, storesIds, priceForm]) => {
         return products
           .filter(
             (p) =>
-              p.price >= (filterForm.priceFrom ?? 0) &&
-              p.price <= (filterForm.priceTo ?? 2000)
+              p.price >= (priceForm.priceFrom ?? 0) &&
+              p.price <= (priceForm.priceTo ?? 2000)
           )
           .filter((p) =>
-            filterForm.rating
-              ? Math.floor(p.ratingValue) === filterForm.rating
+            priceForm.rating
+              ? Math.floor(p.ratingValue) === priceForm.rating
               : p
           )
           .filter((p) => {
-            return stores.size > 0
-              ? p.storeIds
-                  .sort()
-                  .toString()
-                  .includes([...stores].sort().join(','))
-              : p;
+
+            return storesIds ? p.storeIds.join(',').includes(storesIds) : p;
           });
       })
     );
@@ -204,6 +216,12 @@ export class CategoryProductsComponent {
     private _storesService: StoresService
   ) {}
 
+  private _mapStores(stores: StoreModel[]): Record<string, StoreModel> {
+    return stores.reduce((a, s) => ({ ...a, [s.id]: s }), {}) as Record<
+      string,
+      StoreModel
+    >;
+  }
   private _mapToProductsWithCategoryName(
     products: ProductModel[],
     categories: CategoryModel[]
@@ -289,18 +307,9 @@ export class CategoryProductsComponent {
       )
       .subscribe();
   }
-  onCheckChange(store: StoreModel): void {
-    console.log('onChange ', store);
-    this._selectedStoresSubject.value.has(store.id)
-      ? this._selectedStoresSubject.value.delete(store.id)
-      : this._selectedStoresSubject.value.add(store.id);
-  }
+
   private createFormControlForCheckbox(stores: StoreModel[]) {
-    const targetGroup: FormGroup = this.filterForm.get('stores') as FormGroup;
+    const targetGroup: FormGroup = this.storesForm.get('stores') as FormGroup;
     stores.forEach((s) => targetGroup.addControl(s.id, new FormControl(false)));
-  }
-  private selectedStores(stores: StoreModel[]) {
-    this.filterForm.value.stores.valueChanges
-   
   }
 }
