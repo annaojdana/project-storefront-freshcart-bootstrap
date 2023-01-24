@@ -9,6 +9,7 @@ import { Observable, combineLatest, of, BehaviorSubject } from 'rxjs';
 import {
   debounceTime,
   map,
+  shareReplay,
   startWith,
   switchMap,
   take,
@@ -68,7 +69,7 @@ export class CategoryProductsComponent {
     priceFrom: new FormControl(),
     priceTo: new FormControl(),
     rating: new FormControl(),
-    stores: new FormControl(false),
+    stores: new FormGroup({}),
     search: new FormControl(),
   });
   readonly categories$: Observable<CategoryModel[]> =
@@ -112,29 +113,35 @@ export class CategoryProductsComponent {
       )
     );
 
-  readonly searchValue$: Observable<string | null> =
-    this.filterForm.valueChanges.pipe(
-      map((form) => form.search),
-      debounceTime(1000),
-      startWith(null)
-    );
+  readonly searchValue$: Observable<string> = this.filterForm.valueChanges.pipe(
+    map((form) => form.search),
+    debounceTime(1000),
+    startWith(''),
+    tap(() => console.log('tutaj')),
+    shareReplay(1)
+  );
 
   readonly searchedStores$: Observable<StoreModel[]> = combineLatest([
     this._storesService.getAllStores(),
     this.searchValue$,
   ]).pipe(
     map(([stores, search]) =>
-      stores.filter((s) =>
-        search !== null ? s.name.toLowerCase().includes(search) : []
-      )
-    )
+      search
+        ? stores.filter((s) =>
+            s.name.toLowerCase().includes(search.toLowerCase())
+          )
+        : stores
+    ),
+    // oddzielne funkcja tutaj
+    tap((stores) => {
+      const test: FormGroup = this.filterForm.get('stores') as FormGroup;
+      stores.forEach((s) => test.addControl(s.id, new FormControl(false)));
+    })
   );
   private _selectedStoresSubject: BehaviorSubject<Set<string>> =
     new BehaviorSubject<Set<string>>(new Set());
   public selectedStores$: Observable<Set<string>> =
     this._selectedStoresSubject.asObservable();
-
-
 
   readonly filteredProducts$: Observable<ProductsWithCategoryNameQueryModel[]> =
     combineLatest([
@@ -159,14 +166,14 @@ export class CategoryProductsComponent {
               ? Math.floor(p.ratingValue) === filterForm.rating
               : p
           )
-        .filter((p) => {
-          return stores.size > 0
-            ? p.storeIds
-                .sort()
-                .toString()
-                .includes([...stores].sort().join(','))
-            : p;
-        });
+          .filter((p) => {
+            return stores.size > 0
+              ? p.storeIds
+                  .sort()
+                  .toString()
+                  .includes([...stores].sort().join(','))
+              : p;
+          });
       })
     );
 
@@ -289,6 +296,7 @@ export class CategoryProductsComponent {
       .subscribe();
   }
   onCheckChange(store: StoreModel): void {
+    console.log('onChange ', store);
     this._selectedStoresSubject.value.has(store.id)
       ? this._selectedStoresSubject.value.delete(store.id)
       : this._selectedStoresSubject.value.add(store.id);
