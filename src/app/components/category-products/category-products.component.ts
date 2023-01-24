@@ -63,7 +63,10 @@ export class CategoryProductsComponent {
     },
   ]);
   readonly form: FormGroup = new FormGroup({
-    selectFilter: new FormControl('Featured'),
+    value: new FormControl('Featured'),
+    key: new FormControl('featureValue'),
+    order: new FormControl('desc'),
+    id: new FormControl(1),
   });
   readonly filterForm: FormGroup = new FormGroup({
     priceFrom: new FormControl(),
@@ -96,19 +99,13 @@ export class CategoryProductsComponent {
       this._activatedRoute.params,
       this._productsService.getAll(),
       this._categoriesService.getAllCategory(),
-      this.form.valueChanges.pipe(
-        startWith({ selectFilter: { id: 1, value: 'Featured', order: 'desc' } })
-      ),
+      this.form.valueChanges,
     ]).pipe(
       map(([params, products, categories, selectFilter]) =>
         this._mapToProductsWithCategoryName(products, categories)
           .filter((p) => p.category.id.includes(params['categoryId']))
           .sort((a, b) => {
-            return this.sortProductsConditional(
-              selectFilter['selectFilter'],
-              a,
-              b
-            );
+            return this.sortProductsConditional(selectFilter, a, b);
           })
       )
     );
@@ -117,7 +114,6 @@ export class CategoryProductsComponent {
     map((form) => form.search),
     debounceTime(1000),
     startWith(''),
-    tap(() => console.log('tutaj')),
     shareReplay(1)
   );
 
@@ -132,10 +128,8 @@ export class CategoryProductsComponent {
           )
         : stores
     ),
-    // oddzielne funkcja tutaj
     tap((stores) => {
-      const test: FormGroup = this.filterForm.get('stores') as FormGroup;
-      stores.forEach((s) => test.addControl(s.id, new FormControl(false)));
+      this.createFormControlForCheckbox(stores);
     })
   );
   private _selectedStoresSubject: BehaviorSubject<Set<string>> =
@@ -300,5 +294,13 @@ export class CategoryProductsComponent {
     this._selectedStoresSubject.value.has(store.id)
       ? this._selectedStoresSubject.value.delete(store.id)
       : this._selectedStoresSubject.value.add(store.id);
+  }
+  private createFormControlForCheckbox(stores: StoreModel[]) {
+    const targetGroup: FormGroup = this.filterForm.get('stores') as FormGroup;
+    stores.forEach((s) => targetGroup.addControl(s.id, new FormControl(false)));
+  }
+  private selectedStores(stores: StoreModel[]) {
+    this.filterForm.value.stores.valueChanges
+   
   }
 }
