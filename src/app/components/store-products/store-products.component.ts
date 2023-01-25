@@ -49,7 +49,6 @@ export class StoreProductsComponent {
     map(([store, products, search]) =>
       this._mapToSearchProducts(products, store, search)
     ),
-    tap(console.log),
     shareReplay(1)
   );
 
