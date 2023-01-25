@@ -34,7 +34,8 @@
             <div class="card-body"><!-- img --><img [src]="product.imageUrl" [alt]="product.name"
                 class="mb-3 img-fluid"><!-- text -->
               <div class="text-truncate">
-                <h2 class="fs-6">{{product.name}}</h2>
+                <h2 class="fs-6"><a [routerLink]="'/products/'+product.id"
+                    class="text-inherit text-decoration-none">{{product.name}}</a></h2>
                 <p class="text-dark">${{product.price}} </p>
               </div>
             </div>
@@ -55,7 +56,8 @@
             <div class="card-body"><!-- img --><img [src]="product.imageUrl" [alt]="product.name"
                 class="mb-3 img-fluid"><!-- text -->
               <div class="text-truncate">
-                <h2 class="fs-6">{{product.name}}</h2>
+                <h2 class="fs-6"><a [routerLink]="'/products/'+product.id"
+                    class="text-inherit text-decoration-none">{{product.name}}</a></h2>
                 <p class="text-dark">${{product.price}} </p>
               </div>
             </div>

@@ -12,4 +12,10 @@ export class ProductsService {
       `https://6384fca14ce192ac60696c4b.mockapi.io/freshcart-products`
     );
   }
+
+  getOne(id: string): Observable<ProductModel> {
+    return this._httpClient.get<ProductModel>(
+      `https://6384fca14ce192ac60696c4b.mockapi.io/freshcart-products/${id}`
+    );
+  }
 }
