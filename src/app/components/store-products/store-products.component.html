@@ -57,7 +57,7 @@
               <div class="card-body"><!-- img --><img [src]="product.imageUrl" [alt]="product.name"
                   class="mb-3 img-fluid"><!-- text -->
                 <div class="text-truncate">
-                  <h2 class="fs-6 text-wrap">{{product.name}}</h2>
+                  <h2 class="fs-6 text-wrap"><a [routerLink]="'/products/'+product.id" class="text-inherit text-decoration-none">{{product.name}}</a></h2>
                 </div>
               </div>
             </div>
