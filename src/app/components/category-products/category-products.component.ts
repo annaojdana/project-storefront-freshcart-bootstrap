@@ -106,7 +106,7 @@ export class CategoryProductsComponent {
       ),
     ]).pipe(
       map(([params, products, categories, select]) =>
-        this._mapToProductsWithCategoryName(products, categories)
+        this._productsService.mapToProductsWithCategoryName(products, categories)
           .filter((p) => p.category.id.includes(params['categoryId']))
           .sort((a, b) => {
             return this.sortProductsConditional(select['select'], a, b);
@@ -216,45 +216,13 @@ export class CategoryProductsComponent {
     private _storesService: StoresService
   ) {}
 
-  private _mapToProductsWithCategoryName(
-    products: ProductModel[],
-    categories: CategoryModel[]
-  ): ProductsWithCategoryNameQueryModel[] {
-    const categoryMap = categories.reduce(
-      (a, c) => ({ ...a, [c.id]: c }),
-      {}
-    ) as Record<string, CategoryModel>;
-    return products.map((product) => ({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      category: categoryMap[product.categoryId],
-      ratingValue: product.ratingValue,
-      stars: this.ratingToArray(product.ratingValue),
-      ratingCount: product.ratingCount,
-      imageUrl: product.imageUrl,
-      featureValue: product.featureValue,
-      storeIds: product.storeIds,
-    }));
-  }
-
-  private ratingToArray(ratingValue: number): number[] {
-    const value: number[] = [];
-
-    for (let i = 1; i <= ratingValue; i++) {
-      value.push(1);
-    }
-
-    ratingValue % 1 === 0 ? value : value.push(0.5);
-    return value;
-  }
-
+  
   private sortProductsConditional(
     select: FilterOptionsQueryModel,
     productA: ProductsWithCategoryNameQueryModel,
     productB: ProductsWithCategoryNameQueryModel
   ): number {
-  
+
     if (select.order === 'desc') {
       return (
         +productB[select.key as keyof typeof productB] -

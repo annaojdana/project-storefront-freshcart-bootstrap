@@ -3,9 +3,11 @@ export interface ProductsWithCategoryNameQueryModel {
   readonly id: string;
   readonly name: string;
   readonly price: number;
+  readonly discount: number;
+  readonly discountPrice: number;
   readonly category: CategoryModel;
   readonly ratingValue: number;
-  readonly stars:number[],
+  readonly stars: number[];
   readonly ratingCount: number;
   readonly imageUrl: string;
   readonly featureValue: number;

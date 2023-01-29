@@ -1,20 +1,20 @@
-import { CategoryWithProductsQueryModel } from './../../query-models/category-with-products.query-model';
-
 import {
   ChangeDetectionStrategy,
   Component,
   ViewEncapsulation,
 } from '@angular/core';
 import { Observable, combineLatest } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { CategoryModel } from '../../models/category.model';
 import { StoresWithTagsQueryModel } from '../../query-models/stores-with-tags.query-model';
+import { CategoryWithProductsQueryModel } from '../../query-models/category-with-products.query-model';
 import { ProductModel } from '../../models/product.model';
 import { CategoriesService } from '../../services/categories.service';
 import { StoresService } from '../../services/stores.service';
 import { ProductsService } from '../../services/products.service';
 import { StoreModel } from '../../models/store.model';
 import { StoreTagsModel } from '../../models/store-tags.model';
+import { ProductsWithCategoryNameQueryModel } from 'src/app/query-models/products-with-category-name.query-model';
 
 @Component({
   selector: 'app-home',
@@ -36,22 +36,26 @@ export class HomeComponent {
         return this._mapToStoresWithTagsQueryModel(stores, tags);
       })
     );
-  readonly fruitsList$: Observable<CategoryWithProductsQueryModel[]> =
+  readonly fruitsList$: Observable<ProductsWithCategoryNameQueryModel[]> =
     combineLatest([
       this._productsService.getAll(),
       this._categoriesService.getAllCategory(),
     ]).pipe(
       map(([products, categories]) =>
-        this._mapToCategoryWithProducts(products, categories).filter(c=>c.id==='5')
+        this._productsService
+          .mapToProductsWithCategoryName(products, categories)
+          .filter((p) => p.category.id === '5')
       )
     );
-  readonly snacksList$: Observable<CategoryWithProductsQueryModel[]> =
+  readonly snacksList$: Observable<ProductsWithCategoryNameQueryModel[]> =
     combineLatest([
       this._productsService.getAll(),
       this._categoriesService.getAllCategory(),
     ]).pipe(
       map(([products, categories]) =>
-        this._mapToCategoryWithProducts(products, categories).filter(c=>c.id==='2')
+        this._productsService
+          .mapToProductsWithCategoryName(products, categories)
+          .filter((p) => p.category.id === '2')
       )
     );
 
@@ -77,11 +81,11 @@ export class HomeComponent {
       id: store.id,
     }));
   }
+
   private _mapToCategoryWithProducts(
     products: ProductModel[],
     categories: CategoryModel[]
   ): CategoryWithProductsQueryModel[] {
-
     return categories.map((category) => ({
       name: category.name,
       imageUrl: category.imageUrl,
